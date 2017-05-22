@@ -8,6 +8,10 @@ local world = bump.newWorld(64)
 local paddle = {}
 local ball = {}
 local bricks = {}
+local leftWall
+local topWall
+local rightWall
+local bottomWall
 local height
 local width
 
@@ -58,6 +62,47 @@ function love.load(arg)
     if (nextX == width) then nextX = 0 end
     if i == 10 then nextY = nextY + brickHeight end
   end
+
+  leftWall = {
+    isWall = true,
+    isLeftWall = true,
+    x = 0 - 100,
+    y = 0,
+    height = height,
+    width = 100
+  }
+
+  topWall = {
+    isWall = true,
+    isTopWall = true,
+    x = 0,
+    y = 0 - 100,
+    height = 100,
+    width = width
+  }
+
+  rightWall = {
+    isWall = true,
+    isRightWall = true,
+    x = width,
+    y = 0,
+    height = height,
+    width = 100
+  }
+
+  bottomWall = {
+    isWall = true,
+    isBottomWall = true,
+    x = 0,
+    y = height,
+    height = 100,
+    width = width
+  }
+
+  world:add(leftWall, leftWall.x, leftWall.y, leftWall.width, leftWall.height)
+  world:add(topWall, topWall.x, topWall.y, topWall.width, topWall.height)
+  world:add(rightWall, rightWall.x, rightWall.y, rightWall.width, rightWall.height)
+  world:add(bottomWall, bottomWall.x, bottomWall.y, bottomWall.width, bottomWall.height)
 end
 
 function clampValue (val, min, max)
@@ -79,7 +124,7 @@ function collideBall (ball, dt)
   local actualX, actualY, cols, len = world:move(ball, goalX, goalY, ballFilter)
   ball.x, ball.y = actualX, actualY
 
-  if len > 0 and cols[1].move.x ~= 0 then ball.vx = ball.vx * -1 end
+  -- if len > 0 and cols[1].move.x ~= 0 then ball.vx = ball.vx * -1 end
   if len > 0 and cols[1].move.y ~= 0 then ball.vy = ball.vy * -1 end
 
   for i=1, len do
