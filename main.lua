@@ -11,7 +11,9 @@ local bricks = {}
 local height
 local width
 
-function love.load()
+function love.load(arg)
+  if arg[#arg] == '-debug' then require('mobdebug').start() end
+
   height = lg.getHeight()
   width = lg.getWidth()
 
@@ -24,7 +26,7 @@ function love.load()
   ball.radius = width / 100
   ball.x = (width / 2) - (ball.radius / 2)
   ball.y = (height / 2) - (ball.radius / 2)
-  ball.vy = 100
+  ball.vy = 200
   ball.vx = 0
   ball.isBall = true
 
@@ -58,6 +60,16 @@ function love.load()
   end
 end
 
+function clampValue (val, min, max)
+  if val < min then
+    return min
+  elseif val > max then
+    return max
+  else
+    return val
+  end
+end
+
 function collideBall (ball, dt)
   local function ballFilter (other)
     return 'bounce'
@@ -67,11 +79,20 @@ function collideBall (ball, dt)
   local actualX, actualY, cols, len = world:move(ball, goalX, goalY, ballFilter)
   ball.x, ball.y = actualX, actualY
 
+  if len > 0 and cols[1].move.x ~= 0 then ball.vx = ball.vx * -1 end
+  if len > 0 and cols[1].move.y ~= 0 then ball.vy = ball.vy * -1 end
+
   for i=1, len do
     local other = cols[i].other
+
     if other.isBrick then
       other.health = other.health - 50
     elseif other.isPaddle then
+      if lk.isDown('left') then
+        ball.vx = ball.vx - 20
+      elseif lk.isDown('right') then
+        ball.vx = ball.vx
+      end
       -- adjust ball.vx based on where it hit the paddle
       -- compensate for corner collisions that bump handled
     -- elseif other.isFloor
@@ -79,34 +100,24 @@ function collideBall (ball, dt)
     -- elseif other.isWall
       -- do stuff
     end
-  end
+  end -- for cols
+
+  ball.vx = clampValue(ball.vx, -200, 200)
+  ball.vy = clampValue(ball.vy, -200, 200)
 end
 
 function love.update(dt)
-  lurker.update()
+  -- lurker.update()
 
   collideBall(ball, dt)
   -- removeBricks (from bricks table and from world)
   -- updateGameProgress (win/lose/lives/score)
 
-  local function clampPosition (obj)
-    local maxHeight = height - obj.height
-    local maxWidth = width - obj.width
-    if (obj.x > maxWidth) then obj.x = maxWidth end
-    if (obj.y > maxHeight) then obj.y = maxHeight end
-    if (obj.x < 0) then obj.x = 0 end
-    if (obj.y < 0) then obj.y = 0 end
-  end
-
   if lk.isDown('left') then
-    paddle.x = paddle.x - 5
+    paddle.x = math.max(paddle.x - 5, 0)
+  elseif lk.isDown('right') then
+    paddle.x = math.min(paddle.x + 5, width - paddle.width)
   end
-
-  if lk.isDown('right') then
-    paddle.x = paddle.x + 5
-  end
-
-  clampPosition(paddle)
 end
 
 
