@@ -30,7 +30,6 @@ function init ()
   ball.y = (height / 2) - (ball.radius / 2)
   ball.vy = 300
   ball.vx = -40
-  ball.isBall = true
 
   world:add(paddle, paddle.x, paddle.y, paddle.width, paddle.height)
   world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
