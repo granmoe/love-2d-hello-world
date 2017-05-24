@@ -7,9 +7,7 @@ local world = bump.newWorld(64)
 local paddle = {}
 local ball = {}
 local bricks = {}
-local height
-local width
-local gameProgress
+local height, width, gameProgress
 local MAX_BALL_VELOCITY = 400
 local NUM_BRICKS = 24
 local BRICKS_PER_ROW = 8
