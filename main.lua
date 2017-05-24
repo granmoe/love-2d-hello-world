@@ -59,8 +59,10 @@ function love.load(arg)
     world:add(brick, brick.x, brick.y, brickWidth, brickHeight)
     table.insert(bricks, brick)
     nextX = nextX + brickWidth
-    if (nextX == width) then nextX = 0 end
-    if i == 10 then nextY = nextY + brickHeight end
+    if (nextX == width) then
+      nextX = 0
+      nextY = nextY + brickHeight
+    end
   end
 
   leftWall = {
