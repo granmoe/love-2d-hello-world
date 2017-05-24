@@ -124,7 +124,6 @@ function removeBricks ()
       table.remove(bricks, index)
     end
   end
-
 end
 
 function updateGameProgress ()
@@ -168,13 +167,9 @@ drawFunctions = {
     end
   end,
 
-  ['won'] = function ()
-    lg.print('You won! Press R to play again.', 50, height / 10)
-  end,
+  ['won'] = function () lg.print('You won! Press R to play again.', 50, height / 10) end,
 
-  ['lost'] = function ()
-    lg.print('You lost. Press R to play again.', 50, height / 10)
-  end
+  ['lost'] = function () lg.print('You lost. Press R to play again.', 50, height / 10) end
 }
 
 function love.draw()
