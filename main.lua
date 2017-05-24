@@ -106,9 +106,9 @@ function collideBall (ball, dt)
       other.health = other.health - 50
     elseif other.isPaddle then
       if lk.isDown('left') then
-        ball.vx = ball.vx - 20
+        ball.vx = ball.vx - 30
       elseif lk.isDown('right') then
-        ball.vx = ball.vx
+        ball.vx = ball.vx + 30
       end
     end
   end
