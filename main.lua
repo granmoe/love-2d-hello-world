@@ -14,13 +14,13 @@ local rightWall
 local bottomWall
 local height
 local width
+local gameProgress
+local MAX_BALL_VELOCITY = 400
+local NUM_BRICKS = 24
+local BRICKS_PER_ROW = 8
 
-function love.load(arg)
-  if arg[#arg] == '-debug' then require('mobdebug').start() end
-
-  height = lg.getHeight()
-  width = lg.getWidth()
-
+function init ()
+  gameProgress = 'playing'
   paddle.width = width / 6
   paddle.height = height / 40
   paddle.x = (width / 2) - (paddle.width / 2)
@@ -30,8 +30,8 @@ function love.load(arg)
   ball.radius = width / 100
   ball.x = (width / 2) - (ball.radius / 2)
   ball.y = (height / 2) - (ball.radius / 2)
-  ball.vy = 200
-  ball.vx = 0
+  ball.vy = 300
+  ball.vx = -40
   ball.isBall = true
 
   world:add(paddle, paddle.x, paddle.y, paddle.width, paddle.height)
@@ -49,12 +49,12 @@ function love.load(arg)
     }
   end
 
-  brickWidth = width / 10
-  brickHeight = height / 30
+  brickWidth = width / BRICKS_PER_ROW
+  brickHeight = height / NUM_BRICKS
   local nextX = 0
   local nextY = brickHeight * 2
 
-  for i = 1, 30, 1 do
+  for i = 1, NUM_BRICKS, 1 do
     local brick = createBrick(nextX, nextY)
     world:add(brick, brick.x, brick.y, brickWidth, brickHeight)
     table.insert(bricks, brick)
@@ -64,6 +64,24 @@ function love.load(arg)
       nextY = nextY + brickHeight
     end
   end
+end
+
+function cleanup ()
+  world:remove(paddle)
+  world:remove(ball)
+  for idx, brick in pairs(bricks) do
+    world:remove(brick)
+    bricks[idx] = nil
+  end
+end
+
+function love.load(arg)
+  if arg[#arg] == '-debug' then require('mobdebug').start() end
+
+  height = lg.getHeight()
+  width = lg.getWidth()
+
+  init()
 
   leftWall = {
     isWall = true,
@@ -134,6 +152,8 @@ function collideBall (ball, dt)
 
     if other.isBrick then
       other.health = other.health - 50
+    elseif other.isBottomWall then
+      print()
     elseif other.isPaddle then
       if lk.isDown('left') then
         ball.vx = ball.vx - 20
@@ -149,34 +169,71 @@ function collideBall (ball, dt)
     end
   end -- for cols
 
-  ball.vx = clampValue(ball.vx, -200, 200)
-  ball.vy = clampValue(ball.vy, -200, 200)
+  ball.vx = clampValue(ball.vx, -MAX_BALL_VELOCITY, MAX_BALL_VELOCITY)
+  ball.vy = clampValue(ball.vy, -MAX_BALL_VELOCITY, MAX_BALL_VELOCITY)
+end
+
+function removeBricks ()
+  for index, brick in pairs(bricks) do
+    if brick.health <= 0 then
+      world:remove(brick)
+      table.remove(bricks, index)
+    end
+  end
+
+end
+
+function updateGameProgress ()
+  if #bricks == 0 then
+    gameProgress = 'won'
+  elseif ball.y >= height - (ball.radius * 2) then
+    gameProgress = 'lost'
+  end
 end
 
 function love.update(dt)
   -- lurker.update()
+  if gameProgress == 'playing' then
+    updateGameProgress()
+    collideBall(ball, dt)
+    removeBricks()
 
-  collideBall(ball, dt)
-  -- removeBricks (from bricks table and from world)
-  -- updateGameProgress (win/lose/lives/score)
-
-  if lk.isDown('left') then
-    paddle.x = math.max(paddle.x - 5, 0)
-    world:update(paddle, paddle.x, paddle.y)
-  elseif lk.isDown('right') then
-    paddle.x = math.min(paddle.x + 5, width - paddle.width)
-    world:update(paddle, paddle.x, paddle.y)
+    if lk.isDown('left') then
+      paddle.x = math.max(paddle.x - 5, 0)
+      world:update(paddle, paddle.x, paddle.y)
+    elseif lk.isDown('right') then
+      paddle.x = math.min(paddle.x + 5, width - paddle.width)
+      world:update(paddle, paddle.x, paddle.y)
+    end
+  else
+    if lk.isDown('r') then
+      cleanup()
+      init()
+    end
   end
 end
 
+drawFunctions = {
+  ['playing'] = function ()
+    lg.setColor(255, 255, 255)
+    lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
+    lg.circle('fill', ball.x, ball.y, ball.radius)
+
+    for _, brick in pairs(bricks) do
+      lg.setColor(brick.r, brick.g, brick.b, (255 * (brick.health / 100)))
+      lg.rectangle('fill', brick.x, brick.y, brickWidth, brickHeight)
+    end
+  end,
+
+  ['won'] = function ()
+    lg.print('You won! Press R to play again.', 50, height / 10)
+  end,
+
+  ['lost'] = function ()
+    lg.print('You lost. Press R to play again.', 50, height / 10)
+  end
+}
 
 function love.draw()
-  lg.setColor(255, 255, 255)
-  lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
-  lg.circle('fill', ball.x, ball.y, ball.radius)
-
-  for _, brick in pairs(bricks) do
-    lg.setColor(brick.r, brick.g, brick.b, (255 * (brick.health / 100)))
-    lg.rectangle('fill', brick.x, brick.y, brickWidth, brickHeight)
-  end
+  drawFunctions[gameProgress]()
 end
