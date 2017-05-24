@@ -54,7 +54,7 @@ function love.load(arg)
   local nextX = 0
   local nextY = brickHeight * 2
 
-  for i = 0, 29, 1 do
+  for i = 1, 30, 1 do
     local brick = createBrick(nextX, nextY)
     world:add(brick, brick.x, brick.y, brickWidth, brickHeight)
     table.insert(bricks, brick)
@@ -124,8 +124,8 @@ function collideBall (ball, dt)
   local actualX, actualY, cols, len = world:move(ball, goalX, goalY, ballFilter)
   ball.x, ball.y = actualX, actualY
 
-  -- if len > 0 and cols[1].move.x ~= 0 then ball.vx = ball.vx * -1 end
-  if len > 0 and cols[1].move.y ~= 0 then ball.vy = ball.vy * -1 end
+  if goalX ~= actualX then ball.vx = ball.vx * -1 end
+  if goalY ~= actualY then ball.vy = ball.vy * -1 end
 
   for i=1, len do
     local other = cols[i].other
@@ -160,8 +160,10 @@ function love.update(dt)
 
   if lk.isDown('left') then
     paddle.x = math.max(paddle.x - 5, 0)
+    world:update(paddle, paddle.x, paddle.y)
   elseif lk.isDown('right') then
     paddle.x = math.min(paddle.x + 5, width - paddle.width)
+    world:update(paddle, paddle.x, paddle.y)
   end
 end
 
