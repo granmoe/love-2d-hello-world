@@ -7,10 +7,6 @@ local world = bump.newWorld(64)
 local paddle = {}
 local ball = {}
 local bricks = {}
-local leftWall
-local topWall
-local rightWall
-local bottomWall
 local height
 local width
 local gameProgress
@@ -20,6 +16,9 @@ local BRICKS_PER_ROW = 8
 
 function init ()
   gameProgress = 'playing'
+  height = lg.getHeight()
+  width = lg.getWidth()
+
   paddle.width = width / 6
   paddle.height = height / 40
   paddle.x = (width / 2) - (paddle.width / 2)
@@ -76,52 +75,10 @@ end
 
 function love.load(arg)
   if arg[#arg] == '-debug' then require('mobdebug').start() end
-
-  height = lg.getHeight()
-  width = lg.getWidth()
-
   init()
-
-  leftWall = {
-    isWall = true,
-    isLeftWall = true,
-    x = 0 - 100,
-    y = 0,
-    height = height,
-    width = 100
-  }
-
-  topWall = {
-    isWall = true,
-    isTopWall = true,
-    x = 0,
-    y = 0 - 100,
-    height = 100,
-    width = width
-  }
-
-  rightWall = {
-    isWall = true,
-    isRightWall = true,
-    x = width,
-    y = 0,
-    height = height,
-    width = 100
-  }
-
-  bottomWall = {
-    isWall = true,
-    isBottomWall = true,
-    x = 0,
-    y = height,
-    height = 100,
-    width = width
-  }
-
-  world:add(leftWall, leftWall.x, leftWall.y, leftWall.width, leftWall.height)
-  world:add(topWall, topWall.x, topWall.y, topWall.width, topWall.height)
-  world:add(rightWall, rightWall.x, rightWall.y, rightWall.width, rightWall.height)
-  world:add(bottomWall, bottomWall.x, bottomWall.y, bottomWall.width, bottomWall.height)
+  world:add({}, -100, 0, 100, height)  -- left wall
+  world:add({}, 0, 0, width, 100)      -- top wall
+  world:add({}, width, 0, 100, height) -- right wall
 end
 
 function clampValue (val, min, max)
@@ -147,8 +104,6 @@ function collideBall (ball, dt)
 
     if other.isBrick then
       other.health = other.health - 50
-    elseif other.isBottomWall then
-      print()
     elseif other.isPaddle then
       if lk.isDown('left') then
         ball.vx = ball.vx - 20
