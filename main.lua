@@ -1,4 +1,3 @@
-local lurker = require('dependencies.dev.lurker.lurker')
 local bump = require('dependencies.bump')
 
 local lg = love.graphics
@@ -136,12 +135,8 @@ function clampValue (val, min, max)
 end
 
 function collideBall (ball, dt)
-  local function ballFilter (other)
-    return 'bounce'
-  end
-
   local goalX, goalY = ball.x + (ball.vx * dt), ball.y + (ball.vy * dt)
-  local actualX, actualY, cols, len = world:move(ball, goalX, goalY, ballFilter)
+  local actualX, actualY, cols, len = world:move(ball, goalX, goalY, function () return 'bounce' end)
   ball.x, ball.y = actualX, actualY
 
   if goalX ~= actualX then ball.vx = ball.vx * -1 end
@@ -160,14 +155,8 @@ function collideBall (ball, dt)
       elseif lk.isDown('right') then
         ball.vx = ball.vx
       end
-      -- adjust ball.vx based on where it hit the paddle
-      -- compensate for corner collisions that bump handled
-    -- elseif other.isFloor
-      -- lose life or lose game
-    -- elseif other.isWall
-      -- do stuff
     end
-  end -- for cols
+  end
 
   ball.vx = clampValue(ball.vx, -MAX_BALL_VELOCITY, MAX_BALL_VELOCITY)
   ball.vy = clampValue(ball.vy, -MAX_BALL_VELOCITY, MAX_BALL_VELOCITY)
@@ -192,7 +181,6 @@ function updateGameProgress ()
 end
 
 function love.update(dt)
-  -- lurker.update()
   if gameProgress == 'playing' then
     updateGameProgress()
     collideBall(ball, dt)
