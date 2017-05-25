@@ -30,7 +30,7 @@ function init ()
   ball.vx = -40
 
   world:add(paddle, paddle.x, paddle.y, paddle.width, paddle.height)
-  world:add(ball, ball.x, ball.y, ball.radius, ball.radius)
+  world:add(ball, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2)
 
   local function createBrick(x, y)
     return {
@@ -74,7 +74,7 @@ function love.load(arg)
   if arg[#arg] == '-debug' then require('mobdebug').start() end
   init()
   world:add({}, -100, 0, 100, height)  -- left wall
-  world:add({}, 0, 0, width, 100)      -- top wall
+  world:add({}, 0, -100, width, 100)      -- top wall
   world:add({}, width, 0, 100, height) -- right wall
 end
 
@@ -156,7 +156,7 @@ drawFunctions = {
   ['playing'] = function ()
     lg.setColor(255, 255, 255)
     lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
-    lg.circle('fill', ball.x, ball.y, ball.radius)
+    lg.circle('fill', ball.x + ball.radius, ball.y + ball.radius, ball.radius)
 
     for _, brick in pairs(bricks) do
       lg.setColor(brick.r, brick.g, brick.b, (255 * (brick.health / 100)))
