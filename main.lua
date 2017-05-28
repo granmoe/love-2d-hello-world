@@ -32,7 +32,7 @@ function init ()
   world:add(paddle, paddle.x, paddle.y, paddle.width, paddle.height)
   world:add(ball, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2)
 
-  local function createBrick(x, y)
+  local function createBrick(x, y, row, col)
     return {
       x = x,
       y = y,
@@ -40,6 +40,8 @@ function init ()
       r = math.floor(math.random()*256),
       g = math.floor(math.random()*256),
       b = math.floor(math.random()*256),
+      row = row,
+      col = col,
       isBrick = true
     }
   end
@@ -50,7 +52,8 @@ function init ()
   local nextY = brickHeight * 2
 
   for i = 1, NUM_BRICKS, 1 do
-    local brick = createBrick(nextX, nextY)
+    local col = i % BRICKS_PER_ROW > 0 and i % BRICKS_PER_ROW or BRICKS_PER_ROW
+    local brick = createBrick(nextX, nextY, math.ceil(i / BRICKS_PER_ROW), col)
     world:add(brick, brick.x, brick.y, brickWidth, brickHeight)
     table.insert(bricks, brick)
     nextX = nextX + brickWidth
