@@ -43,6 +43,4 @@ function Brick:destroy ()
   self = nil
 end
 
--- a = Account:new{balance = 0}
-
 return Brick
