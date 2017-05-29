@@ -1,0 +1,5 @@
+return {
+  MAX_BALL_VELOCITY = 400,
+  NUM_BRICKS = 24,
+  BRICKS_PER_ROW = 8
+}
