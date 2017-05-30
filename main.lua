@@ -6,7 +6,10 @@ local lg = love.graphics
 local lk = love.keyboard
 local world = bump.newWorld(64)
 
-local paddle = {}
+local paddle = {
+  isPaddle = true,
+  hasBall = false
+}
 local ball = {}
 local bricks = {}
 local height, width, gameProgress
@@ -20,7 +23,6 @@ function init ()
   paddle.height = height / 40
   paddle.x = (width / 2) - (paddle.width / 2)
   paddle.y = height - (paddle.height * 3)
-  paddle.isPaddle = true
 
   ball.radius = width / 100
   ball.x = (width / 2) - (ball.radius / 2)
@@ -75,7 +77,7 @@ function clampValue (val, min, max)
   end
 end
 
-function collideBall (ball, dt)
+function collideBall (dt)
   local goalX, goalY = ball.x + (ball.vx * dt), ball.y + (ball.vy * dt)
   local actualX, actualY, cols, len = world:move(ball, goalX, goalY, function () return 'bounce' end)
   ball.x, ball.y = actualX, actualY
@@ -89,10 +91,10 @@ function collideBall (ball, dt)
     if other.isBrick then
       other:takeDamage()
     elseif other.isPaddle then
-      if lk.isDown('left') then
-        ball.vx = ball.vx - 30
-      elseif lk.isDown('right') then
-        ball.vx = ball.vx + 30
+      if (lk.isDown('space')) then
+        paddle.hasBall = true
+        ball.frozenVx, ball.frozenVy = ball.vx, ball.vy
+        ball.vy, ball.vx = 0, 0
       end
     end
   end
@@ -101,25 +103,47 @@ function collideBall (ball, dt)
   ball.vy = clampValue(ball.vy, -constants.MAX_BALL_VELOCITY, constants.MAX_BALL_VELOCITY)
 end
 
-function updateGameProgress ()
-  if #bricks == 0 then
-    gameProgress = 'won'
-  elseif ball.y >= height - (ball.radius * 2) then
-    gameProgress = 'lost'
+function releaseBall ()
+  paddle.hasBall = false
+  if lk.isDown('left') then
+    ball.vx = ball.frozenVx - 50
+  elseif lk.isDown('right') then
+    ball.vx = ball.frozenVx + 50
   end
+  ball.vy = ball.frozenVy
+  ball.frozenVx, ball.frozenVy = nil, nil
 end
 
-function love.update(dt)
+function love.update (dt)
   if gameProgress == 'playing' then
-    updateGameProgress()
-    collideBall(ball, dt)
+    if #bricks == 0 then
+      gameProgress = 'won'
+    elseif ball.y >= height - (ball.radius * 2) then
+      gameProgress = 'lost'
+    end
+
+    if paddle.hasBall then
+      if not lk.isDown('space') then
+        releaseBall()
+      end
+    else
+      collideBall(dt)
+    end
 
     if lk.isDown('left') then
       paddle.x = math.max(paddle.x - 5, 0)
       world:update(paddle, paddle.x, paddle.y)
+      if paddle.hasBall and paddle.x ~= 0 then
+        ball.x = math.max(ball.x - 5, 0)
+        world:update(ball, ball.x, ball.y)
+      end
     elseif lk.isDown('right') then
       paddle.x = math.min(paddle.x + 5, width - paddle.width)
       world:update(paddle, paddle.x, paddle.y)
+      if paddle.hasBall and paddle.x ~= width - paddle.width then
+        ball.x = math.min(ball.x + 5, width - ball.radius * 2)
+        world:update(ball, ball.x, ball.y)
+      end
     end
   else
     if lk.isDown('r') then
@@ -135,6 +159,11 @@ drawFunctions = {
     lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
     lg.circle('fill', ball.x + ball.radius, ball.y + ball.radius, ball.radius)
 
+    if (lk.isDown('space')) then
+      lg.setColor(255, 0, 0)
+      lg.rectangle('line', paddle.x - 2, paddle.y - 2, paddle.width + 4, paddle.height + 4)
+    end
+
     for _, brick in pairs(bricks) do
       brick:draw()
     end
@@ -148,3 +177,9 @@ drawFunctions = {
 function love.draw()
   drawFunctions[gameProgress]()
 end
+
+-- when ball hits paddle, if space is down, set hasBall = true
+-- else do normal stuff
+-- then on next update, immediately check hasBall
+-- if hasBall and space is up, release ball w saved v
+-- user can only contribute velocity by "throwing" the ball off the paddle

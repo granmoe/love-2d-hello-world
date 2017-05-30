@@ -31,6 +31,11 @@ function Brick:draw ()
 end
 
 function Brick:takeDamage ()
+-- if self isColExploding or Row, explode the whole column or row of bricks
+-- TODO: Random creation of these in the init method above
+-- Different appearance for these bricks
+-- Cool animation for when the row or col gets destroyed
+-- How to do chain reaction if destroying row destroys another col or row exploding brick
   self.health = self.health - 50
   if self.health <= 0 then
     self:destroy()
