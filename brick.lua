@@ -1,9 +1,10 @@
 local lg = love.graphics
 
 local Brick = {}
+Brick.__index = Brick
 
 function Brick:new (x, y, width, height, row, col, index, bricks, world)
-  local brick = {
+  local brick = setmetatable({
     x = x,
     y = y,
     health = 100,
@@ -18,10 +19,8 @@ function Brick:new (x, y, width, height, row, col, index, bricks, world)
     world = world,
     width = width,
     height = height
-  }
+  }, Brick)
 
-  setmetatable(brick, self)
-  self.__index = self
   return brick
 end
 
