@@ -1,10 +1,25 @@
 local lg = love.graphics
 
-local Brick = {}
-Brick.__index = Brick
+function createBrick (x, y, width, height, row, col, index, bricks, world)
+  local brick
 
-function Brick:new (x, y, width, height, row, col, index, bricks, world)
-  local brick = setmetatable({
+  local function draw ()
+    lg.setColor(brick.r / 255, brick.g / 255, brick.b / 255, (255 * (brick.health / 100)) / 255)
+    lg.rectangle('fill', brick.x, brick.y, brick.width, brick.height)
+  end
+  
+  local function takeDamage ()
+    brick.health = brick.health - 50
+    if brick.health <= 0 then brick.destroy() end
+  end
+  
+  local function destroy ()
+    brick.world:remove(brick)
+    brick.bricks[brick.index] = nil
+    brick = nil
+  end
+
+  brick = {
     x = x,
     y = y,
     health = 100,
@@ -18,28 +33,13 @@ function Brick:new (x, y, width, height, row, col, index, bricks, world)
     bricks = bricks,
     world = world,
     width = width,
-    height = height
-  }, Brick)
+    height = height,
+    draw = draw,
+    takeDamage = takeDamage,
+    destroy = destroy,
+  }
 
   return brick
 end
 
-function Brick:draw ()
-  lg.setColor(self.r, self.g, self.b, (255 * (self.health / 100)))
-  lg.rectangle('fill', self.x, self.y, self.width, self.height)
-end
-
-function Brick:takeDamage ()
-  self.health = self.health - 50
-  if self.health <= 0 then
-    self:destroy()
-  end
-end
-
-function Brick:destroy ()
-  self.world:remove(self)
-  self.bricks[self.index] = nil
-  self = nil
-end
-
-return Brick
+return createBrick

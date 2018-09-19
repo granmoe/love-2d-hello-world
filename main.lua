@@ -1,6 +1,6 @@
 local bump = require('dependencies.bump')
 local constants = require('constants')
-local Brick = require('brick')
+local createBrick = require('brick')
 
 local lg = love.graphics
 local lk = love.keyboard
@@ -38,7 +38,7 @@ function init ()
 
   for i = 1, constants.NUM_BRICKS, 1 do
     local col = i % constants.BRICKS_PER_ROW > 0 and i % constants.BRICKS_PER_ROW or constants.BRICKS_PER_ROW
-    local brick = Brick:new(nextX, nextY, brickWidth, brickHeight, math.ceil(i / constants.BRICKS_PER_ROW), col, i, bricks, world)
+    local brick = createBrick(nextX, nextY, brickWidth, brickHeight, math.ceil(i / constants.BRICKS_PER_ROW), col, i, bricks, world)
     world:add(brick, brick.x, brick.y, brickWidth, brickHeight)
     table.insert(bricks, brick)
     nextX = nextX + brickWidth
@@ -53,7 +53,7 @@ function cleanup ()
   world:remove(paddle)
   world:remove(ball)
   for idx, brick in pairs(bricks) do
-    brick:destroy()
+    brick.destroy()
   end
 end
 
@@ -129,22 +129,18 @@ function love.update(dt)
   end
 end
 
-drawFunctions = {
-  ['playing'] = function ()
+function love.draw()
+  if gameProgress == 'playing' then
     lg.setColor(255, 255, 255)
     lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
     lg.circle('fill', ball.x + ball.radius, ball.y + ball.radius, ball.radius)
 
     for _, brick in pairs(bricks) do
-      brick:draw()
+      brick.draw()
     end
-  end,
-
-  ['won'] = function () lg.print('You won! Press R to play again.', 50, height / 10) end,
-
-  ['lost'] = function () lg.print('You lost. Press R to play again.', 50, height / 10) end
-}
-
-function love.draw()
-  drawFunctions[gameProgress]()
+  elseif gameProgress == 'won' then
+    lg.print('You won! Press R to play again.', 50, height / 10)
+  elseif gameProgress == 'lost' then
+    lg.print('You lost. Press R to play again.', 50, height / 10)
+  end
 end
