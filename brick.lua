@@ -20,7 +20,7 @@ local Brick = {
   end
 }
 
-function createBrick(x, y, width, height, row, col, index, bricks, world)
+local function createBrick(x, y, width, height, row, col, index, bricks, world)
   local brick = {
     x = x,
     y = y,
