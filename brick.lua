@@ -1,25 +1,27 @@
 local lg = love.graphics
 
-function createBrick (x, y, width, height, row, col, index, bricks, world)
-  local brick
+local Brick = {
+  draw = function(self)
+    lg.setColor(self.r / 255, self.g / 255, self.b / 255, (255 * (self.health / 100)) / 255)
+    lg.rectangle('fill', self.x, self.y, self.width, self.height)
+  end,
 
-  local function draw ()
-    lg.setColor(brick.r / 255, brick.g / 255, brick.b / 255, (255 * (brick.health / 100)) / 255)
-    lg.rectangle('fill', brick.x, brick.y, brick.width, brick.height)
-  end
-  
-  local function takeDamage ()
-    brick.health = brick.health - 50
-    if brick.health <= 0 then brick.destroy() end
-  end
-  
-  local function destroy ()
-    brick.world:remove(brick)
-    brick.bricks[brick.index] = nil
-    brick = nil
-  end
+  takeDamage = function(self)
+    self.health = self.health - 50
+    if self.health <= 0 then
+      self:destroy()
+    end
+  end,
 
-  brick = {
+  destroy = function(self)
+    self.world:remove(self)
+    self.bricks[self.index] = nil
+    self = nil
+  end
+}
+
+function createBrick(x, y, width, height, row, col, index, bricks, world)
+  local brick = {
     x = x,
     y = y,
     health = 100,
@@ -33,11 +35,10 @@ function createBrick (x, y, width, height, row, col, index, bricks, world)
     bricks = bricks,
     world = world,
     width = width,
-    height = height,
-    draw = draw,
-    takeDamage = takeDamage,
-    destroy = destroy,
+    height = height
   }
+  
+  setmetatable(brick, { __index = Brick })
 
   return brick
 end

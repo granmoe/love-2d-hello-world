@@ -53,7 +53,7 @@ function cleanup ()
   world:remove(paddle)
   world:remove(ball)
   for idx, brick in pairs(bricks) do
-    brick.destroy()
+    brick:destroy()
   end
 end
 
@@ -131,16 +131,18 @@ end
 
 function love.draw()
   if gameProgress == 'playing' then
-    lg.setColor(255, 255, 255)
+    lg.setColor(1, 1, 1)
     lg.rectangle('fill', paddle.x, paddle.y, paddle.width, paddle.height)
     lg.circle('fill', ball.x + ball.radius, ball.y + ball.radius, ball.radius)
 
     for _, brick in pairs(bricks) do
-      brick.draw()
+      brick:draw()
     end
   elseif gameProgress == 'won' then
+    lg.setColor(1, 1, 1)
     lg.print('You won! Press R to play again.', 50, height / 10)
   elseif gameProgress == 'lost' then
+    lg.setColor(1, 1, 1)
     lg.print('You lost. Press R to play again.', 50, height / 10)
   end
 end
